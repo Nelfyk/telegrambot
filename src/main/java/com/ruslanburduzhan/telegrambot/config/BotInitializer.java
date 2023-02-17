@@ -2,7 +2,6 @@ package com.ruslanburduzhan.telegrambot.config;
 
 import com.ruslanburduzhan.telegrambot.service.TelegramBotService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
