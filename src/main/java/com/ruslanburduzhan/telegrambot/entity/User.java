@@ -17,15 +17,17 @@ public class User {
     private String lastName;
     private String userName;
     private Timestamp registeredAt;
+    private int msgCounter;
 
     public User() {
     }
 
-    public User(long chatId, String firstName, String lastName, String userName, Timestamp registeredAt) {
+    public User(long chatId, String firstName, String lastName, String userName, Timestamp registeredAt, int msgCounter) {
         this.chatId = chatId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.userName = userName;
         this.registeredAt = registeredAt;
+        this.msgCounter = msgCounter;
     }
 }

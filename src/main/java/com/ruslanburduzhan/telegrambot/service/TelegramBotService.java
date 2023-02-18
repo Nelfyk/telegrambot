@@ -61,7 +61,8 @@ public class TelegramBotService extends TelegramLongPollingBot {
                     registerUser(update.getMessage());
                     startCommandReceived(chatId, update.getMessage().getChat().getFirstName());
                 }
-                case "/showmyinfo" -> sendInfo(chatId);
+                case "/showmyinfo" -> sendInfo(chatId,chatId);
+                case "/showalluserinfo" -> showAllUserInfo(chatId);
                 case "/getallusers" -> getAllUsers(chatId);
                 case "рита" -> {
                     sendMessage(chatId, "Курочка моя <3");
@@ -71,6 +72,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
             if (msgText.startsWith("/sendall ")) {
                 sendAll(chatId, msgText.substring(9));
             }
+            incrUserMsgCounter(chatId);
         }
     }
 
@@ -79,7 +81,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
             var chatId = msg.getChatId();
             var chat = msg.getChat();
             User user = new User(chatId, chat.getFirstName(), chat.getLastName(),
-                    chat.getUserName(), new Timestamp(System.currentTimeMillis()));
+                    chat.getUserName(), new Timestamp(System.currentTimeMillis()), 1);
             userRepository.save(user);
         }
 
@@ -101,14 +103,15 @@ public class TelegramBotService extends TelegramLongPollingBot {
         }
     }
 
-    private void sendInfo(long chatId) {
+    private void sendInfo(long chatId,long purposeId ) {
         var user = userRepository.findByChatId(chatId).get();
 
-        sendMessage(chatId, "chat_id: " + user.getChatId() +
+        sendMessage(purposeId, "chat_id: " + user.getChatId() +
                 "\nfirst_name: " + user.getFirstName() +
                 "\nlast_name: " + user.getLastName() +
                 "\nregistered_at: " + user.getRegisteredAt() +
-                "\nuser_name: " + user.getUserName());
+                "\nuser_name: " + user.getUserName() +
+                "\nmsg_counter: "+ user.getMsgCounter());
     }
 
     private void sendAll(long chatId, String msg) {
@@ -125,7 +128,18 @@ public class TelegramBotService extends TelegramLongPollingBot {
     }
 
     private void getAllUsers(long chatId) {
-            List<User> userList = userRepository.findAll();
-            userList.forEach(user -> sendMessage(chatId, user.getUserName()));
+        List<User> userList = userRepository.findAll();
+        userList.forEach(user -> sendMessage(chatId, user.getUserName()));
+    }
+
+    private void incrUserMsgCounter(long chatId) {
+        var user = userRepository.findByChatId(chatId).get();
+        user.setMsgCounter(user.getMsgCounter() + 1);
+        userRepository.save(user);
+    }
+
+    private void showAllUserInfo(long chatId) {
+        List<User> userList = userRepository.findAll();
+        userList.forEach(user->sendInfo(user.getChatId(),chatId));
     }
 }

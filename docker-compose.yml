@@ -1,0 +1,26 @@
+version: "3.7"
+services:
+  api_service:
+    build: .
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - nelf_mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://nelf_mysql:3306/telegram_bot
+    command: sh -c './wait-for nelf_mysql:3306 -- npm start'
+  nelf_mysql:
+    image: "mysql"
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_DATABASE: telegram_bot
+      MYSQL_USER: bestuser
+      MYSQL_PASSWORD: bestuser
+      MYSQL_ROOT_PASSWORD: bestuser
+    volumes:
+      - dbdata:/var/lib/mysql
+volumes:
+  dbdata:
