@@ -20,16 +20,19 @@ import java.util.List;
 
 @Service
 public class TelegramBotService extends TelegramLongPollingBot {
+    final String PERMISSION_DENIED = "Недостаточно прав.";
 
     @Autowired
     private UserRepository userRepository;
     final BotConfig botConfig;
 
+
     public TelegramBotService(BotConfig botConfig) {
         this.botConfig = botConfig;
         List<BotCommand> listOfCommands = new ArrayList<>();
-        listOfCommands.add(new BotCommand("/start", "hello"));
-        listOfCommands.add(new BotCommand("/showmyinfo", "hello"));
+        listOfCommands.add(new BotCommand("/start", "Приветственноe сообщение."));
+        listOfCommands.add(new BotCommand("/showmyinfo", "Показывает информацию по пользователю."));
+        listOfCommands.add(new BotCommand("/getallusers", "Вывести всех пользователей бота."));
         try {
             this.execute(new SetMyCommands(listOfCommands, new BotCommandScopeDefault(), null));
         } catch (TelegramApiException e) {
@@ -58,11 +61,15 @@ public class TelegramBotService extends TelegramLongPollingBot {
                     registerUser(update.getMessage());
                     startCommandReceived(chatId, update.getMessage().getChat().getFirstName());
                 }
-                case "/showmyinfo" -> messageInfo(chatId);
+                case "/showmyinfo" -> sendInfo(chatId);
+                case "/getallusers" -> getAllUsers(chatId);
                 case "рита" -> {
                     sendMessage(chatId, "Курочка моя <3");
                 }
-                default -> sendMessage(chatId, "Sorry, open beta.");
+            }
+
+            if (msgText.startsWith("/sendall ")) {
+                sendAll(chatId, msgText.substring(9));
             }
         }
     }
@@ -94,7 +101,7 @@ public class TelegramBotService extends TelegramLongPollingBot {
         }
     }
 
-    private void messageInfo(long chatId) {
+    private void sendInfo(long chatId) {
         var user = userRepository.findByChatId(chatId).get();
 
         sendMessage(chatId, "chat_id: " + user.getChatId() +
@@ -102,5 +109,23 @@ public class TelegramBotService extends TelegramLongPollingBot {
                 "\nlast_name: " + user.getLastName() +
                 "\nregistered_at: " + user.getRegisteredAt() +
                 "\nuser_name: " + user.getUserName());
+    }
+
+    private void sendAll(long chatId, String msg) {
+        if (chatId == botConfig.getLandlord()) {
+            List<User> userList = userRepository.findAllForSendAll(botConfig.getLandlord());
+            int counter = 0;
+            for (User q : userList) {
+                sendMessage(q.getChatId(), msg);
+                counter++;
+            }
+            sendMessage(chatId, "Отправлено " + counter + " пользователям.");
+        } else
+            sendMessage(chatId, PERMISSION_DENIED);
+    }
+
+    private void getAllUsers(long chatId) {
+            List<User> userList = userRepository.findAll();
+            userList.forEach(user -> sendMessage(chatId, user.getUserName()));
     }
 }

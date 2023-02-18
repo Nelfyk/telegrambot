@@ -13,4 +13,6 @@ public class BotConfig {
     String botName;
     @Value("${bot.key}")
     String token;
+    @Value(("${bot.landlord}"))
+    long landlord;
 }
