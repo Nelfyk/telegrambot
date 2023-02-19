@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
-mvn clean package -DskipTests
-docker-compose build
-docker-compose up -d
+#mvn clean package -DskipTests
+docker-compose down
+docker-compose up --build -d
